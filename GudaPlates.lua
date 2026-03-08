@@ -1139,9 +1139,10 @@ local function HandleNamePlate(frame)
     end
 
     -- Target highlight brackets (square bracket shape [ ])
-    -- Left bracket [
+    --[[
     nameplate.targetBracket = {}
     
+    -- Left bracket [
     nameplate.targetBracket.leftVert = nameplate.health:CreateTexture(nil, "OVERLAY")
     nameplate.targetBracket.leftVert:SetTexture(1, 1, 1, 0.5)
     nameplate.targetBracket.leftVert:SetWidth(1)
@@ -1176,6 +1177,7 @@ local function HandleNamePlate(frame)
     nameplate.targetBracket.rightBottom:SetHeight(1)
     nameplate.targetBracket.rightBottom:SetWidth(6)
     nameplate.targetBracket.rightBottom:Hide()
+    ]]
 
     -- Target glow effect (Dragonflight3-style with top and bottom glow)
     nameplate.targetGlowTop = nameplate:CreateTexture(nil, "BACKGROUND")
@@ -2079,6 +2081,7 @@ local function UpdateNamePlate(frame)
         end
         
         -- Position left bracket [ (offset by 3px from bar, extend 4px beyond borders)
+        --[[
         nameplate.targetBracket.leftVert:ClearAllPoints()
         nameplate.targetBracket.leftVert:SetPoint("TOPRIGHT", topAnchor, "TOPLEFT", -1, 2)
         nameplate.targetBracket.leftVert:SetPoint("BOTTOMRIGHT", bottomAnchor, "BOTTOMLEFT", -1, -2)
@@ -2105,6 +2108,7 @@ local function UpdateNamePlate(frame)
         nameplate.targetBracket.rightBottom:ClearAllPoints()
         nameplate.targetBracket.rightBottom:SetPoint("BOTTOMRIGHT", nameplate.targetBracket.rightVert, "BOTTOMLEFT", 0, 0)
         nameplate.targetBracket.rightBottom:Show()
+        ]]
         
         -- Show target glow if enabled (Dragonflight3-style top/bottom glow)
         if Settings.showTargetGlow then
@@ -2126,12 +2130,14 @@ local function UpdateNamePlate(frame)
         nameplate:SetFrameLevel(10)
     else
         -- Hide all bracket parts
+        --[[
         nameplate.targetBracket.leftVert:Hide()
         nameplate.targetBracket.leftTop:Hide()
         nameplate.targetBracket.leftBottom:Hide()
         nameplate.targetBracket.rightVert:Hide()
         nameplate.targetBracket.rightTop:Hide()
         nameplate.targetBracket.rightBottom:Hide()
+        ]]
         -- Hide target glow
         if nameplate.targetGlowTop then
             nameplate.targetGlowTop:Hide()
