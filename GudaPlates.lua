@@ -381,6 +381,7 @@ local function StripSpellRank(spellString)
 end
 
 -- Hook original CastSpell (ShaguPlates-style)
+--[[
 local Original_CastSpell = CastSpell
 CastSpell = function(spellId, bookType)
 	if SpellDB and spellId and bookType then
@@ -396,8 +397,10 @@ CastSpell = function(spellId, bookType)
 	end
 	return Original_CastSpell(spellId, bookType)
 end
+]]
 
 -- Hook original CastSpellByName (ShaguPlates-style)
+--[[
 local Original_CastSpellByName = CastSpellByName
 CastSpellByName = function(spellString, onSelf)
 	if SpellDB and spellString then
@@ -413,8 +416,10 @@ CastSpellByName = function(spellString, onSelf)
 	end
 	return Original_CastSpellByName(spellString, onSelf)
 end
+]]
 
 -- Hook UseAction (for action bar clicks) (ShaguPlates-style)
+--[[
 local Original_UseAction = UseAction
 UseAction = function(slot, checkCursor, onSelf)
 	if SpellDB and slot then
@@ -439,6 +444,7 @@ UseAction = function(slot, checkCursor, onSelf)
 	end
 	return Original_UseAction(slot, checkCursor, onSelf)
 end
+]]
 
 -- Initialize tooltip scanner for action bar scanning
 if SpellDB then
@@ -3104,6 +3110,7 @@ SlashCmdList["GUDAPLATES"] = function(msg)
         else
             GudaPlatesOptionsFrame:Show()
         end
+    --[[
     elseif msg == "debug" or msg == "debuffs" then
         -- Show all debuffs on current target using tooltip scanning
         if not UnitExists("target") then
@@ -3137,6 +3144,8 @@ SlashCmdList["GUDAPLATES"] = function(msg)
             Print("No debuffs found on target.")
         end
         Print("=== End of debuffs ===")
+    ]]
+    --[[
     elseif msg == "tracked" then
         -- Show all tracked debuffs in SpellDB (ShaguPlates-style objects)
         Print("=== Tracked Debuffs ===")
@@ -3162,6 +3171,7 @@ SlashCmdList["GUDAPLATES"] = function(msg)
             Print("SpellDB not loaded or no tracked debuffs.")
         end
         Print("=== End of tracked ===")
+    ]]
     elseif msg == "pending" then
         -- Show pending spell cast (ShaguPlates-style array format)
         Print("=== Pending Spell ===")
@@ -3237,6 +3247,7 @@ SlashCmdList["GUDAPLATES"] = function(msg)
                 Print("Available presets: lightblue, cyan, green, teal, purple, pink, yellow, white, gray")
             end
         end
+    --[[
     elseif msg == "debugjudge" then
         if GudaPlates_Debuffs and GudaPlates_Debuffs.ToggleJudgeDebug then
             GudaPlates_Debuffs:ToggleJudgeDebug()
@@ -3277,13 +3288,14 @@ SlashCmdList["GUDAPLATES"] = function(msg)
         else
             Print("No target selected")
         end
+    ]]
     else
         Print("Commands: /gp tank | /gp dps | /gp toggle | /gp config")
         Print("         /gp othertank <color> - Set Other Tank Aggro color")
-        Print("         /gp debug - Show target debuffs with tooltip scanning")
-        Print("         /gp debugjudge - Toggle Paladin Judgement refresh debug")
-        Print("         /gp judge - Show tracked judgements on target")
-        Print("         /gp tracked - Show all tracked debuffs")
+        Print("         /gp debug - Show target debuffs with tooltip scanning - disabled")
+        Print("         /gp debugjudge - Toggle Paladin Judgement refresh debug - disabled")
+        Print("         /gp judge - Show tracked judgements on target - disabled")
+        Print("         /gp tracked - Show all tracked debuffs - disabled")
         Print("         /gp pending - Show pending spell cast")
         Print("         /gp spelldb - Test SpellDB loading")
         Print("Current role: " .. playerRole)
