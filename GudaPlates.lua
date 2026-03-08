@@ -34,11 +34,6 @@ local function DisableShaguTweaksNameplates()
     end
     return false
 end
-GudaPlates.DisableShaguTweaksNameplates = DisableShaguTweaksNameplates
-
--- Try immediately in case ShaguTweaks loaded before us
--- (Also called in main ADDON_LOADED handler for proper timing)
-DisableShaguTweaksNameplates()
 
 -- Ensure Settings exists with defaults (fallback if Settings file didn't load)
 if not GudaPlates.Settings then
