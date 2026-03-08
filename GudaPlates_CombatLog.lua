@@ -130,7 +130,7 @@ end
 
 local function ParseAttackHit(msg)
     -- Debug: show raw combat message if debug enabled
-    local showDebug = GudaPlates_Debuffs and GudaPlates_Debuffs.DEBUG_JUDGEMENT
+    local showDebug = false -- GudaPlates_Debuffs and GudaPlates_Debuffs.DEBUG_JUDGEMENT
     if showDebug then
         DEFAULT_CHAT_FRAME:AddMessage("[Judge] ParseAttackHit msg: " .. (msg or "nil"))
     end
@@ -161,9 +161,11 @@ local function ParseAttackHit(msg)
     end
 
     -- Call SealHandler for Paladin judgement refresh
+    --[[
     if attacker == "You" and victim and GudaPlates_Debuffs then
         GudaPlates_Debuffs:SealHandler(attacker, victim)
     end
+    ]]
 
     -- Original melee tracking code (needs SpellDB and recentMeleeHits)
     if not SpellDB then return end
@@ -245,6 +247,7 @@ local function ParseAttackHit(msg)
         end
     end
 
+    --[[
     if attacker and victim and GudaPlates_Debuffs then
         -- Debug output if judgement debug is enabled
         if GudaPlates_Debuffs.DEBUG_JUDGEMENT then
@@ -252,6 +255,7 @@ local function ParseAttackHit(msg)
         end
         GudaPlates_Debuffs:SealHandler(attacker, victim)
     end
+    ]]
 end
 
 -- Expose functions via GudaPlates table

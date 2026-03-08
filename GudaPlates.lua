@@ -645,6 +645,7 @@ local function UpdateNamePlateDimensions(frame)
         nameplate.castbar.timer:SetFont(Settings.textFont, 8, "OUTLINE")
     end
     -- Update debuff fonts
+    --[[
     if nameplate.debuffs then
         for i = 1, GudaPlates_Debuffs:GetMaxDebuffs() do
             if nameplate.debuffs[i] then
@@ -653,6 +654,7 @@ local function UpdateNamePlateDimensions(frame)
             end
         end
     end
+    ]]
 
     -- Apply text colors from settings
     nameplate.name:SetTextColor(Settings.nameColor[1], Settings.nameColor[2], Settings.nameColor[3], Settings.nameColor[4])
@@ -707,6 +709,7 @@ local function UpdateNamePlateDimensions(frame)
         end
         
         -- Debuffs below mana bar (or healthbar if no mana)
+        --[[
         for i = 1, GudaPlates_Debuffs:GetMaxDebuffs() do
             nameplate.debuffs[i]:ClearAllPoints()
             if i == 1 then
@@ -719,6 +722,7 @@ local function UpdateNamePlateDimensions(frame)
                 nameplate.debuffs[i]:SetPoint("LEFT", nameplate.debuffs[i-1], "RIGHT", 1, 0)
             end
         end
+        ]]
         
         -- Castbar above healthbar (no gap), align based on raid icon position when wider
         nameplate.castbar:ClearAllPoints()
@@ -753,6 +757,7 @@ local function UpdateNamePlateDimensions(frame)
         end
         
         -- Debuffs above mana bar (or healthbar if no mana)
+        --[[
         for i = 1, GudaPlates_Debuffs:GetMaxDebuffs() do
             nameplate.debuffs[i]:ClearAllPoints()
             if i == 1 then
@@ -765,6 +770,7 @@ local function UpdateNamePlateDimensions(frame)
                 nameplate.debuffs[i]:SetPoint("LEFT", nameplate.debuffs[i-1], "RIGHT", 1, 0)
             end
         end
+        ]]
         
         -- Castbar below healthbar (default mode), align based on raid icon position when wider
         nameplate.castbar:ClearAllPoints()
@@ -1301,9 +1307,11 @@ local function HandleNamePlate(frame)
     nameplate.castbar.icon.border:SetPoint("BOTTOMRIGHT", nameplate.castbar.icon, "BOTTOMRIGHT", 1, -1)
 
     -- Debuff icons
+    --[[
     if GudaPlates_Debuffs then
         GudaPlates_Debuffs:CreateDebuffFrames(nameplate)
     end
+    ]]
 
     -- Combo points (Rogue/Druid)
     --[[
@@ -1840,6 +1848,8 @@ local function UpdateNamePlate(frame)
 
         -- Apply color based on state (priority order: TAPPED -> STUNNED -> NEUTRAL -> THREAT COLORS)
         local isStunned = false
+        
+        --[[
         if GudaPlates_Debuffs and GudaPlates_Debuffs.timers then
             -- Check stuns by GUID if available, or by name as fallback
             for _, stunName in ipairs(STUN_EFFECTS) do
@@ -1858,6 +1868,7 @@ local function UpdateNamePlate(frame)
                 end
             end
         end
+        ]]
 
         if isTappedByOthers and hp < hpmax then
         -- TAPPED: Mob is tapped by others and took damage - no other colors applied
@@ -2340,6 +2351,7 @@ local function UpdateNamePlate(frame)
 
     -- Debuff logic is now handled by GudaPlates_Debuffs module
     -- Throttle debuff updates to DEBUFF_UPDATE_INTERVAL (default 0.1s = 10 updates/sec)
+    --[[
     local numDebuffs = 0
     if GudaPlates_Debuffs then
         local lastDebuffUpdate = nameplate.lastDebuffUpdate or 0
@@ -2354,6 +2366,7 @@ local function UpdateNamePlate(frame)
             GudaPlates_Debuffs:UpdateDebuffPositions(nameplate, numDebuffs)
         end
     end
+    ]]
 
     -- Combo points (Rogue/Druid) - update on every frame for responsiveness
     --[[
@@ -2424,10 +2437,12 @@ local function GudaPlates_OnUpdate()
     local didWork = false
 
     -- Throttle debuff timer cleanup to once per second
+    --[[
     if GudaPlates_Debuffs and now - lastDebuffCleanup > CLEANUP_INTERVAL then
         lastDebuffCleanup = now
         GudaPlates_Debuffs:CleanupTimers()
     end
+    ]]
 
     -- Scanning logic (delegated to Scanner module)
     if GudaPlates_Scanner.ScanForNewNameplates(registry, HandleNamePlate) then
@@ -2560,6 +2575,7 @@ GudaPlatesEventFrame:SetScript("OnEvent", function()
                 end
             end
 
+            --[[
             if spell and victim and (spell == "Thunderfury" or spell == "Thunderfury's Blessing") then
                 local unitlevel = UnitName("target") == victim and UnitLevel("target") or 0
                 local duration = SpellDB:GetDuration("Thunderfury", 0)
@@ -2600,12 +2616,15 @@ GudaPlatesEventFrame:SetScript("OnEvent", function()
             if GudaPlates_Debuffs and GudaPlates_Debuffs.HolyStrikeHandler then
                 GudaPlates_Debuffs:HolyStrikeHandler(arg1)
             end
+            ]]
         end
     elseif arg1 and COMBAT_EVENTS[event] then
         -- Debug: verify combat events are reaching here
+        --[[
         if GudaPlates_Debuffs and GudaPlates_Debuffs.DEBUG_JUDGEMENT then
             DEFAULT_CHAT_FRAME:AddMessage("[Judge] COMBAT_EVENT: " .. event .. " - " .. string_sub(arg1, 1, 50))
         end
+        ]]
         if GudaPlates.ParseAttackHit then GudaPlates.ParseAttackHit(arg1) end
     end
 
@@ -2685,6 +2704,7 @@ GudaPlatesEventFrame:SetScript("OnEvent", function()
         end
 
     -- ShaguPlates-style event handlers
+    --[[
     elseif event == "SPELLCAST_STOP" then
         -- For instant spells that refresh existing debuffs
         -- The "afflicted" message doesn't fire on refresh, only on initial apply
@@ -2714,6 +2734,7 @@ GudaPlatesEventFrame:SetScript("OnEvent", function()
             end
             -- If not existing, wait for combat log "afflicted" message
         end
+    ]]
 
     elseif event == "CHAT_MSG_SPELL_FAILED_LOCALPLAYER" and arg1 then
         -- Remove pending spell on failure
@@ -2739,6 +2760,7 @@ GudaPlatesEventFrame:SetScript("OnEvent", function()
         end
 
         -- Add missing debuffs by iteration (ShaguPlates-style)
+        --[[
         if SpellDB and UnitExists("target") then
             local unitname = UnitName("target")
             local unitlevel = UnitLevel("target") or 0
@@ -2753,7 +2775,9 @@ GudaPlatesEventFrame:SetScript("OnEvent", function()
                 end
             end
         end
+        ]]
 
+    --[[
     elseif event == "CHAT_MSG_SPELL_PERIODIC_HOSTILEPLAYER_DAMAGE" or event == "CHAT_MSG_SPELL_PERIODIC_CREATURE_DAMAGE" then
         -- Track debuff applications from combat log (ShaguPlates-style)
         if arg1 and SpellDB then
@@ -2903,7 +2927,9 @@ GudaPlatesEventFrame:SetScript("OnEvent", function()
                 end
             end
         end
+    ]]
 
+    --[[
     elseif event == "CHAT_MSG_SPELL_PERIODIC_SELF_DAMAGE" then
         -- Track player's own periodic damage (Deep Wound, etc.) for ownership inference
         -- This event fires when YOUR DoTs tick on enemies
@@ -2960,7 +2986,9 @@ GudaPlatesEventFrame:SetScript("OnEvent", function()
                 end
             end
         end
+    ]]
 
+    --[[
     elseif event == "CHAT_MSG_COMBAT_SELF_HITS" then
         -- Track melee crits for Deep Wound heuristic
         -- Format: "You crit Target for X damage." or "You hit Target for X damage."
@@ -2986,7 +3014,9 @@ GudaPlatesEventFrame:SetScript("OnEvent", function()
                 end
             end
         end
+    ]]
 
+    --[[
     elseif event == "CHAT_MSG_SPELL_AURA_GONE_OTHER" or event == "CHAT_MSG_SPELL_AURA_GONE_SELF" then
         if arg1 then
             -- Pattern: "Spell fades from Unit."
@@ -3024,6 +3054,7 @@ GudaPlatesEventFrame:SetScript("OnEvent", function()
                 end
             end
         end
+    ]]
 
     -- Combat state tracking for garbage collection
     elseif event == "PLAYER_REGEN_DISABLED" then

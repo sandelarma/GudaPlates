@@ -42,6 +42,7 @@ local function HandleUnitCastEvent(guid, target, eventType, spellId, timer)
         icon = icon or "Interface\\Icons\\INV_Misc_QuestionMark"
 
         -- Update SpellDB with debuff info if it's a known debuff
+        --[[
         if SpellDB and eventType == "CAST" and target and target ~= "" then
             local duration = SpellDB:GetDuration(spell, 0)
             if duration and duration > 0 then
@@ -68,6 +69,7 @@ local function HandleUnitCastEvent(guid, target, eventType, spellId, timer)
                 end
             end
         end
+        ]]
 
         -- Skip buff procs during cast (same logic as ShaguPlates)
         if eventType == "CAST" then
