@@ -521,10 +521,12 @@ local function UpdateNamePlateDimensions(frame)
 
     -- Use friendly (smaller) dimensions for friendly units and eligible enemy players
     -- Note: Enemy player detection is done in UpdateNamePlate which calls this function when PvP status changes
-    local usePlayerDimensions = isFriendly
+    local usePlayerDimensions = false
+    --[[
     if not usePlayerDimensions and GudaPlates_Players and GudaPlates_Players.ShouldUsePlayerDimensions then
         usePlayerDimensions = GudaPlates_Players.ShouldUsePlayerDimensions(nameplate, Settings, isFriendly)
     end
+    ]]
 
     local hHeight, hWidth, hFontSize, hTextPos, lFontSize, nFontSize
     if usePlayerDimensions then
@@ -1363,7 +1365,7 @@ local function UpdateNamePlate(frame)
             GudaPlates_Players.DetectEnemyPlayer(frame, nameplate, unitstr)
             -- If PvP status changed, update dimensions
             if prevPvP ~= nameplate.cachedIsEnemyPlayerPvP then
-                UpdateNamePlateDimensions(frame)
+                --UpdateNamePlateDimensions(frame)
             end
         end
     end
