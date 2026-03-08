@@ -217,6 +217,12 @@ function GudaPlates_Threat.IsPlayerTank(playerName)
     return GP_TankPlayers[playerName] == true
 end
 
+-- Manually Handle GP_TankPlayers
+function GudaPlates_Threat.ManageTank(playerName, isTank)
+    if not playerName then return false end
+    GP_TankPlayers[playerName] = isTank
+end
+
 -- Handle incoming Tank Mode messages
 local function GP_HandleTankModeMessage(sender, msg)
     if string_find(msg, "TM=") then
@@ -227,6 +233,7 @@ local function GP_HandleTankModeMessage(sender, msg)
         end
     end
 end
+
 
 -- =============================================================================
 -- Threat Data Accessors
@@ -387,6 +394,7 @@ if GudaPlates then
     GudaPlates.GP_TankPlayers = GP_TankPlayers
     GudaPlates.BroadcastTankMode = GudaPlates_Threat.BroadcastTankMode
     GudaPlates.IsPlayerTank = GudaPlates_Threat.IsPlayerTank
+    GudaPlates.ManageTank = GudaPlates_Threat.ManageTank
     GudaPlates.GetTWTankModeThreat = GudaPlates_Threat.GetTWTankModeThreat
     GudaPlates.GetGPThreatData = GudaPlates_Threat.GetGPThreatData
     GudaPlates.IsInPlayerGroup = GudaPlates_Threat.IsInPlayerGroup

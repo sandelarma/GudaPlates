@@ -305,6 +305,7 @@ local GetTWTankModeThreat = GudaPlates_Threat and GudaPlates_Threat.GetTWTankMod
 local GetGPThreatData = GudaPlates_Threat and GudaPlates_Threat.GetGPThreatData
 local IsInPlayerGroup = GudaPlates_Threat and GudaPlates_Threat.IsInPlayerGroup
 local IsPlayerTank = GudaPlates_Threat and GudaPlates_Threat.IsPlayerTank
+local ManageTank = GudaPlates_Threat and GudaPlates_Threat.ManageTank
 local BroadcastTankMode = GudaPlates_Threat and GudaPlates_Threat.BroadcastTankMode
 
 -- Load spell database if available
@@ -3200,6 +3201,18 @@ SlashCmdList["GUDAPLATES"] = function(msg)
             Print("SpellDB loaded: NO")
             Print("GudaPlates_SpellDB: " .. tostring(GudaPlates_SpellDB ~= nil))
         end
+    elseif string_find(msg, "^tankname") then
+        local args = string_gsub(msg, "^tankname%s*", "")
+        local isAdd = string_find(args, "^add")
+        local isRemove = string_find(args, "^remove")
+        local tankname = string_gsub(args, "^(add|remove)%s*", "")
+        if isAdd then
+            ManageTank(tankname, true)
+            Print("Added tank name: " .. tankname)
+        elseif isRemove then
+            ManageTank(tankname, false)
+            Print("Removed tank name: " .. tankname)
+        end
     elseif string_find(msg, "^othertank") then
         -- Set OTHER_TANK color: /gp othertank <preset> or /gp othertank r g b
         local args = string_gsub(msg, "^othertank%s*", "")
@@ -3292,6 +3305,7 @@ SlashCmdList["GUDAPLATES"] = function(msg)
     else
         Print("Commands: /gp tank | /gp dps | /gp toggle | /gp config")
         Print("         /gp othertank <color> - Set Other Tank Aggro color")
+        Print("         /gp tankname <add|remove> <playername> - Set Player as Tank")
         Print("         /gp debug - Show target debuffs with tooltip scanning - disabled")
         Print("         /gp debugjudge - Toggle Paladin Judgement refresh debug - disabled")
         Print("         /gp judge - Show tracked judgements on target - disabled")
