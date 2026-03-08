@@ -1792,206 +1792,208 @@ local function UpdateNamePlate(frame)
         else
             -- Not an enemy player (or couldn't detect class) - use standard hostile/mob coloring
 
-        -- Check if mob is in combat (has a target)
-        local mobInCombat = false
-        local mobTargetUnit = nil
-
-        if hasValidGUID then
-            mobTargetUnit = unitstr .. "target"
-            mobInCombat = UnitExists(mobTargetUnit)
-        else
-        -- Fallback: assume in combat if attacking player or we have threat data or has glow
-            mobInCombat = isAttackingPlayer or (twthreat_active and threatPct > 0) or hasAggroGlow
-            -- For fallback, use targettarget if we're targeting this mob
-            if plateName and UnitExists("target") and UnitName("target") == plateName and frame:GetAlpha() > 0.9 then
-                mobTargetUnit = "targettarget"
+            -- Check if mob is in combat (has a target)
+            local mobInCombat = false
+            local mobTargetUnit = nil
+    
+            if hasValidGUID then
+                mobTargetUnit = unitstr .. "target"
+                mobInCombat = UnitExists(mobTargetUnit)
+            else
+            -- Fallback: assume in combat if attacking player or we have threat data or has glow
+                mobInCombat = isAttackingPlayer or (twthreat_active and threatPct > 0) or hasAggroGlow
+                -- For fallback, use targettarget if we're targeting this mob
+                if plateName and UnitExists("target") and UnitName("target") == plateName and frame:GetAlpha() > 0.9 then
+                    mobTargetUnit = "targettarget"
+                end
             end
-        end
-
-        -- Check if mob is tapped by others
-        local isTappedByOthers = false
-
-        -- 1. Check original color for gray (tapped)
-        -- Blizzard gray for tapped is (0.5, 0.5, 0.5)
-        if r > 0.4 and r < 0.6 and g > 0.4 and g < 0.6 and b > 0.4 and b < 0.6 then
-            isTappedByOthers = true
-        end
-
-        -- 2. Use API for 100% accuracy if unit is available
-        local unitForAPI = nil
-        if hasValidGUID then
-            unitForAPI = unitstr
-        elseif UnitExists("target") and UnitName("target") == plateName and frame:GetAlpha() > 0.9 then
-            unitForAPI = "target"
-        end
-
-        if not isTappedByOthers and unitForAPI then
-            if UnitIsTapped(unitForAPI) and not UnitIsTappedByPlayer(unitForAPI) then
-                -- Double check if the mob is attacking someone in our group (excluding player)
+    
+            -- Check if mob is tapped by others
+            local isTappedByOthers = false
+    
+            -- 1. Check original color for gray (tapped)
+            -- Blizzard gray for tapped is (0.5, 0.5, 0.5)
+            if r > 0.4 and r < 0.6 and g > 0.4 and g < 0.6 and b > 0.4 and b < 0.6 then
+                isTappedByOthers = true
+            end
+    
+            -- 2. Use API for 100% accuracy if unit is available
+            local unitForAPI = nil
+            if hasValidGUID then
+                unitForAPI = unitstr
+            elseif UnitExists("target") and UnitName("target") == plateName and frame:GetAlpha() > 0.9 then
+                unitForAPI = "target"
+            end
+    
+            if not isTappedByOthers and unitForAPI then
+                if UnitIsTapped(unitForAPI) and not UnitIsTappedByPlayer(unitForAPI) then
+                    -- Double check if the mob is attacking someone in our group (excluding player)
+                    local isMobTargetingGroupMate = false
+                    local apiTarget = unitForAPI .. "target"
+                    if UnitExists(apiTarget) and not UnitIsUnit(apiTarget, "player") then
+                        isMobTargetingGroupMate = IsInPlayerGroup(apiTarget)
+                    end
+    
+                    if not isMobTargetingGroupMate then
+                        isTappedByOthers = true
+                    end
+                end
+            end
+    
+            -- 3. Fallback for non-target plates
+            local originalIsGray = (r > 0.4 and r < 0.6 and g > 0.4 and g < 0.6 and b > 0.4 and b < 0.6)
+            if not isTappedByOthers and mobInCombat and (originalIsGray or (r < 0.1 and g < 0.1 and b < 0.1)) then
                 local isMobTargetingGroupMate = false
-                local apiTarget = unitForAPI .. "target"
-                if UnitExists(apiTarget) and not UnitIsUnit(apiTarget, "player") then
-                    isMobTargetingGroupMate = IsInPlayerGroup(apiTarget)
+    
+                if mobTargetUnit and UnitExists(mobTargetUnit) and not UnitIsUnit(mobTargetUnit, "player") then
+                    isMobTargetingGroupMate = IsInPlayerGroup(mobTargetUnit)
                 end
-
-                if not isMobTargetingGroupMate then
-                    isTappedByOthers = true
-                end
+    
+                local isMobTargetingGroup = isMobTargetingGroupMate or isAttackingPlayer or hasAggroGlow
+                isTappedByOthers = not isMobTargetingGroup
             end
-        end
-
-        -- 3. Fallback for non-target plates
-        local originalIsGray = (r > 0.4 and r < 0.6 and g > 0.4 and g < 0.6 and b > 0.4 and b < 0.6)
-        if not isTappedByOthers and mobInCombat and (originalIsGray or (r < 0.1 and g < 0.1 and b < 0.1)) then
-            local isMobTargetingGroupMate = false
-
-            if mobTargetUnit and UnitExists(mobTargetUnit) and not UnitIsUnit(mobTargetUnit, "player") then
-                isMobTargetingGroupMate = IsInPlayerGroup(mobTargetUnit)
-            end
-
-            local isMobTargetingGroup = isMobTargetingGroupMate or isAttackingPlayer or hasAggroGlow
-            isTappedByOthers = not isMobTargetingGroup
-        end
-
-        -- Apply color based on state (priority order: TAPPED -> STUNNED -> NEUTRAL -> THREAT COLORS)
-        local isStunned = false
-        
-        --[[
-        if GudaPlates_Debuffs and GudaPlates_Debuffs.timers then
-            -- Check stuns by GUID if available, or by name as fallback
-            for _, stunName in ipairs(STUN_EFFECTS) do
-                local hasStun = false
-                -- Check by GUID first (more accurate)
-                if hasValidGUID and unitstr then
-                    hasStun = GudaPlates_Debuffs.timers[unitstr .. "_" .. stunName]
-                end
-                -- Also check by name (works for non-targeted units)
-                if not hasStun and plateName then
-                    hasStun = GudaPlates_Debuffs.timers[plateName .. "_" .. stunName]
-                end
-                if hasStun then
-                    isStunned = true
-                    break
-                end
-            end
-        end
-        ]]
-
-        if isTappedByOthers and hp < hpmax then
-        -- TAPPED: Mob is tapped by others and took damage - no other colors applied
-            nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TAPPED))
-        elseif isStunned then
-        -- STUNNED: Unit is stunned
-            nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.STUN))
-        elseif GudaPlates_Healthbar.ShouldShowNeutral(nameplate, isNeutral, isAttackingPlayer) then
-        -- Neutral and not attacking - yellow (wasNeutral persists even if WoW changes color)
-            GudaPlates_Healthbar.ApplyNeutralColor(nameplate)
-        elseif not mobInCombat then
-        -- Not in combat (and not neutral/tapped) - default hostile red
-            nameplate.health:SetStatusBarColor(0.85, 0.2, 0.2, 1)
-        elseif hasTWThreatData then
-        -- Full threat-based coloring using TWThreat Tank Mode data (from addon messages)
-            if GudaPlates_Healthbar.WasNeutral(nameplate) and not isAttackingPlayer then
-                -- Neutral mob not attacking - yellow (skip threat colors)
-                GudaPlates_Healthbar.ApplyNeutralColor(nameplate)
-            elseif playerRole == "TANK" then
-                if playerHasAggro then
-                    -- Tank has aggro - check if anyone else is close to pulling (on current target only)
-                    if highestOtherPct > 80 then
-                        -- Someone is close to pulling - warning orange
-                        nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TANK.LOSING_AGGRO))
-                    else
-                        -- Safe - no one close to pulling
-                        nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TANK.AGGRO))
+    
+            -- Apply color based on state (priority order: TAPPED -> STUNNED -> NEUTRAL -> THREAT COLORS)
+            local isStunned = false
+            
+            --[[
+            if GudaPlates_Debuffs and GudaPlates_Debuffs.timers then
+                -- Check stuns by GUID if available, or by name as fallback
+                for _, stunName in ipairs(STUN_EFFECTS) do
+                    local hasStun = false
+                    -- Check by GUID first (more accurate)
+                    if hasValidGUID and unitstr then
+                        hasStun = GudaPlates_Debuffs.timers[unitstr .. "_" .. stunName]
                     end
-                else
-                    -- Tank doesn't have aggro - someone else does
-                    -- Check if the threat holder has Tank Mode enabled in GudaPlates
-                    if IsPlayerTank(threatHolderName) then
-                        nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TANK.OTHER_TANK))
-                    else
-                        -- Non-tank has aggro - need to taunt
-                        nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TANK.NO_AGGRO))
+                    -- Also check by name (works for non-targeted units)
+                    if not hasStun and plateName then
+                        hasStun = GudaPlates_Debuffs.timers[plateName .. "_" .. stunName]
+                    end
+                    if hasStun then
+                        isStunned = true
+                        break
                     end
                 end
-            else
-                -- DPS/Healer mode
-                if playerHasAggro then
-                    -- DPS having aggro is bad
-                    nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.DPS.AGGRO))
-                elseif playerThreatPct > 80 then
-                    -- High threat warning (we're close to pulling)
-                    nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.DPS.HIGH_THREAT))
-                else
-                    -- Tank has aggro - good
-                    nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.DPS.NO_AGGRO))
-                end
             end
-        elseif hasValidGUID then
-        -- Has GUID but no TWThreat - use targeting-based colors only
-        -- Without threat data, we can only react to target changes
-            if GudaPlates_Healthbar.WasNeutral(nameplate) and not isAttackingPlayer then
-                -- Neutral mob not attacking - yellow (skip threat colors)
+            ]]
+    
+            if isTappedByOthers and hp < hpmax then
+            -- TAPPED: Mob is tapped by others and took damage - no other colors applied
+                nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TAPPED))
+            elseif isStunned then
+            -- STUNNED: Unit is stunned
+                nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.STUN))
+            elseif GudaPlates_Healthbar.ShouldShowNeutral(nameplate, isNeutral, isAttackingPlayer) then
+            -- Neutral and not attacking - yellow (wasNeutral persists even if WoW changes color)
                 GudaPlates_Healthbar.ApplyNeutralColor(nameplate)
-            elseif playerRole == "TANK" then
-                if isAttackingPlayer then
-                    -- Mob targeting player - tank has aggro
-                    nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TANK.AGGRO))
-                elseif mobTargetUnit and UnitExists(mobTargetUnit) and not UnitIsUnit(mobTargetUnit, "player") then
-                    -- Mob is targeting someone else
-                    local targetName = UnitName(mobTargetUnit)
-                    if IsPlayerTank(targetName) then
-                        nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TANK.OTHER_TANK))
+            elseif not mobInCombat then
+            -- Not in combat (and not neutral/tapped) - default hostile red
+                nameplate.health:SetStatusBarColor(0.85, 0.2, 0.2, 1)
+            elseif hasTWThreatData then
+            -- Full threat-based coloring using TWThreat Tank Mode data (from addon messages)
+                if GudaPlates_Healthbar.WasNeutral(nameplate) and not isAttackingPlayer then
+                    -- Neutral mob not attacking - yellow (skip threat colors)
+                    GudaPlates_Healthbar.ApplyNeutralColor(nameplate)
+                elseif playerRole == "TANK" then
+                    if playerHasAggro then
+                        -- Tank has aggro - check if anyone else is close to pulling (on current target only)
+                        if highestOtherPct > 80 then
+                            -- Someone is close to pulling - warning orange
+                            nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TANK.LOSING_AGGRO))
+                        else
+                            -- Safe - no one close to pulling
+                            nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TANK.AGGRO))
+                        end
                     else
-                        nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TANK.NO_AGGRO))
-                    end
-                else
-                    nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TANK.NO_AGGRO))
-                end
-            else
-                if isAttackingPlayer then
-                    -- DPS has aggro - bad
-                    nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.DPS.AGGRO))
-                else
-                    -- DPS doesn't have aggro - good
-                    nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.DPS.NO_AGGRO))
-                end
-            end
-        else
-        -- No GUID (no SuperWoW) - fallback with name-based detection
-        -- Without threat data, we can only react to target changes
-            if GudaPlates_Healthbar.WasNeutral(nameplate) and not isAttackingPlayer then
-                -- Neutral mob not attacking - yellow (skip threat colors)
-                GudaPlates_Healthbar.ApplyNeutralColor(nameplate)
-            elseif playerRole == "TANK" then
-                if isAttackingPlayer then
-                    -- Mob targeting player - tank has aggro
-                    nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TANK.AGGRO))
-                else
-                    -- Check if another tank has aggro (only when we're targeting this mob)
-                    local otherTankHasAggro = false
-                    if plateName and UnitExists("target") and UnitName("target") == plateName then
-                        if frame:GetAlpha() > 0.9 and UnitExists("targettarget") then
-                            otherTankHasAggro = IsPlayerTank(UnitName("targettarget"))
+                        -- Tank doesn't have aggro - someone else does
+                        -- Check if the threat holder has Tank Mode enabled in GudaPlates
+                        if IsPlayerTank(threatHolderName) then
+                            nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TANK.OTHER_TANK))
+                        else
+                            -- Non-tank has aggro - need to taunt
+                            nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TANK.NO_AGGRO))
                         end
                     end
-                    if otherTankHasAggro then
-                        nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TANK.OTHER_TANK))
+                else
+                    -- DPS/Healer mode
+                    if playerHasAggro then
+                        -- DPS having aggro is bad
+                        nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.DPS.AGGRO))
+                    elseif playerThreatPct > 80 then
+                        -- High threat warning (we're close to pulling)
+                        nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.DPS.HIGH_THREAT))
                     else
-                        -- Non-tank has aggro or unknown
+                        -- Tank has aggro - good
+                        nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.DPS.NO_AGGRO))
+                    end
+                end
+            elseif hasValidGUID then
+            -- Has GUID but no TWThreat - use targeting-based colors only
+            -- Without threat data, we can only react to target changes
+                if GudaPlates_Healthbar.WasNeutral(nameplate) and not isAttackingPlayer then
+                    -- Neutral mob not attacking - yellow (skip threat colors)
+                    GudaPlates_Healthbar.ApplyNeutralColor(nameplate)
+                elseif playerRole == "TANK" then
+                    if isAttackingPlayer then
+                        -- Mob targeting player - tank has aggro
+                        nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TANK.AGGRO))
+                    elseif mobTargetUnit and UnitExists(mobTargetUnit) and not UnitIsUnit(mobTargetUnit, "player") then
+                        -- Mob is targeting someone else
+                        local targetName = UnitName(mobTargetUnit)
+                        if IsPlayerTank(targetName) then
+                            nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TANK.OTHER_TANK))
+                        else
+                            nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TANK.NO_AGGRO))
+                        end
+                    else
                         nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TANK.NO_AGGRO))
+                    end
+                else
+                    if isAttackingPlayer then
+                        -- DPS has aggro - bad
+                        nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.DPS.AGGRO))
+                    else
+                        -- DPS doesn't have aggro - good
+                        nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.DPS.NO_AGGRO))
                     end
                 end
             else
-                if isAttackingPlayer then
-                    -- DPS has aggro - bad
-                    nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.DPS.AGGRO))
+            -- No GUID (no SuperWoW) - fallback with name-based detection
+            -- Without threat data, we can only react to target changes
+                if GudaPlates_Healthbar.WasNeutral(nameplate) and not isAttackingPlayer then
+                    -- Neutral mob not attacking - yellow (skip threat colors)
+                    GudaPlates_Healthbar.ApplyNeutralColor(nameplate)
+                elseif playerRole == "TANK" then
+                    if isAttackingPlayer then
+                        -- Mob targeting player - tank has aggro
+                        nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TANK.AGGRO))
+                    else
+                        --[[
+                        -- Check if another tank has aggro (only when we're targeting this mob)
+                        local otherTankHasAggro = false
+                        if plateName and UnitExists("target") and UnitName("target") == plateName then
+                            if frame:GetAlpha() > 0.9 and UnitExists("targettarget") then
+                                otherTankHasAggro = IsPlayerTank(UnitName("targettarget"))
+                            end
+                        end
+                        if otherTankHasAggro then
+                            nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TANK.OTHER_TANK))
+                        else
+                        ]]
+                        -- Non-tank has aggro or unknown
+                        nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.TANK.NO_AGGRO))
+                        -- end
+                    end
                 else
-                    -- DPS doesn't have aggro - good
-                    nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.DPS.NO_AGGRO))
+                    if isAttackingPlayer then
+                        -- DPS has aggro - bad
+                        nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.DPS.AGGRO))
+                    else
+                        -- DPS doesn't have aggro - good
+                        nameplate.health:SetStatusBarColor(unpack(THREAT_COLORS.DPS.NO_AGGRO))
+                    end
                 end
             end
-        end
         end -- End of else block for non-enemy-player
     end
 
