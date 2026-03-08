@@ -1302,9 +1302,11 @@ local function HandleNamePlate(frame)
     end
 
     -- Combo points (Rogue/Druid)
+    --[[
     if GudaPlates_ComboPoints and GudaPlates_ComboPoints:CanUseComboPoints() then
         GudaPlates_ComboPoints:CreateComboPointFrames(nameplate)
     end
+    ]]
 
     UpdateNamePlateDimensions(frame)
 
@@ -2346,10 +2348,12 @@ local function UpdateNamePlate(frame)
     end
 
     -- Combo points (Rogue/Druid) - update on every frame for responsiveness
+    --[[
     if GudaPlates_ComboPoints and GudaPlates_ComboPoints:CanUseComboPoints() then
         GudaPlates_ComboPoints:UpdateComboPoints(nameplate, isTarget)
         GudaPlates_ComboPoints:UpdateComboPointPositions(nameplate, numDebuffs)
     end
+    ]]
 end
 GudaPlates.UpdateNamePlate = UpdateNamePlate  -- Expose for Options module
 
