@@ -130,10 +130,6 @@ local COMBAT_EVENTS = GudaPlates.COMBAT_EVENTS
 -- Macro Texture Hover Only
 local macroFrame = CreateFrame("Frame")
 
-if DEFAULT_CHAT_FRAME then
-    DEFAULT_CHAT_FRAME:AddMessage("|cff00ffff[GudaPlates]|r Loading...")
-end
-
 -- Disable pfUI nameplates module
 local function DisablePfUINameplates()
     if pfUI then
@@ -2607,9 +2603,7 @@ GudaPlatesEventFrame:SetScript("OnEvent", function()
             -- Also try to disable pfUI nameplates when our addon is loaded
             DisablePfUINameplates()
             -- Disable ShaguTweaks nameplate processing
-            if GudaPlates.DisableShaguTweaksNameplates then
-                GudaPlates.DisableShaguTweaksNameplates()
-            end
+            DisableShaguTweaksNameplates()
         elseif arg1 == "pfUI" then
             -- pfUI just loaded, disable its nameplates
             if DisablePfUINameplates() then
@@ -2617,24 +2611,20 @@ GudaPlatesEventFrame:SetScript("OnEvent", function()
             end
         elseif arg1 == "ShaguTweaks" or arg1 == "ShaguTweaks-tbc" then
             -- ShaguTweaks just loaded, disable its nameplate processing
-            if GudaPlates.DisableShaguTweaksNameplates then
-                -- Delay one frame to let ShaguTweaks initialize libnameplate
-                local delayFrame = CreateFrame("Frame")
-                delayFrame:SetScript("OnUpdate", function()
-                    this:SetScript("OnUpdate", nil)
-                    if GudaPlates.DisableShaguTweaksNameplates() then
-                        Print("Disabled ShaguTweaks nameplate modules (using GudaPlates instead)")
-                    end
-                end)
-            end
+            -- Delay one frame to let ShaguTweaks initialize libnameplate
+            local delayFrame = CreateFrame("Frame")
+            delayFrame:SetScript("OnUpdate", function()
+                this:SetScript("OnUpdate", nil)
+                if DisableShaguTweaksNameplates() then
+                    Print("Disabled ShaguTweaks nameplate modules (using GudaPlates instead)")
+                end
+            end)
         end
     elseif event == "PLAYER_ENTERING_WORLD" then
         -- Also try to disable pfUI nameplates on world enter (in case it loaded before us)
         DisablePfUINameplates()
         -- Also disable ShaguTweaks nameplates
-        if GudaPlates.DisableShaguTweaksNameplates then
-            GudaPlates.DisableShaguTweaksNameplates()
-        end
+        DisableShaguTweaksNameplates()
 
         -- Clear trackers on zone/load (clear contents, don't reassign to preserve references)
         for k in pairs(GudaPlates.debuffTracker) do GudaPlates.debuffTracker[k] = nil end
@@ -3477,14 +3467,14 @@ loadFrame:SetScript("OnEvent", function()
             end
         end
     end
-    Print("Settings loaded.")
+    --Print("Settings loaded.")
 
     -- Test the spell database
     if SpellDB then
-        Print("Spell database loaded successfully")
+        --Print("Spell database loaded successfully")
         -- Quick test with Rend
-        local duration = SpellDB:GetDuration("Rend", 2)
-        Print("  Test - Rend Rank 2 -> " .. tostring(duration) .. "s (expected: 12)")
+        --local duration = SpellDB:GetDuration("Rend", 2)
+        --Print("  Test - Rend Rank 2 -> " .. tostring(duration) .. "s (expected: 12)")
     else
         Print("ERROR: Spell database not loaded!")
     end
