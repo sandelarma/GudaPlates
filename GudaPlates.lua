@@ -3212,10 +3212,8 @@ SlashCmdList["GUDAPLATES"] = function(msg)
         tankname = string_gsub(tankname, "^remove%s*", "")
         if isAdd then
             ManageTank(tankname, true)
-            Print("Added tank name: " .. tankname)
         elseif isRemove then
-            ManageTank(tankname, false)
-            Print("Removed tank name: " .. tankname)
+            ManageTank(tankname, nil)
         else
             PrintTanks()
         end

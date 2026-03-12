@@ -227,12 +227,24 @@ end
 -- Manually Handle GP_TankPlayers
 function GudaPlates_Threat.ManageTank(playerName, isTank)
     if not playerName then return false end
-    GP_TankPlayers[CapitalizeName(playerName)] = isTank
+    local properTankName = CapitalizeName(playerName)
+    GP_TankPlayers[properTankName] = isTank
+    Print("Set " .. properTankName .. ": " .. tostring(isTank))
+    
+    if GudaPlates.SaveSettings then
+        GudaPlates.SaveSettings()
+    else 
+        Print("Could not persist the Tank handling to Settings DB")
+    end
 end
 
 function GudaPlates_Threat.PrintTanks(playerName, isTank)
-    for key,value in pairs(GP_TankPlayers) do
-        Print(key .. ": " .. tostring(value)) 
+    if GP_TankPlayers then
+        for key,value in pairs(GP_TankPlayers) do
+            Print(key .. ": " .. tostring(value)) 
+        end
+    else
+        Print("No tanks are stored.")
     end
 end
 
