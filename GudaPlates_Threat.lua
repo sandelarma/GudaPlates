@@ -217,10 +217,17 @@ function GudaPlates_Threat.IsPlayerTank(playerName)
     return GP_TankPlayers[playerName] == true
 end
 
+
+-- Capitalize the first letter
+local function CapitalizeName(name)
+    if not name or name == "" then return name end
+    return string.upper(string.sub(name, 1, 1)) .. string.lower(string.sub(name, 2))
+end
+
 -- Manually Handle GP_TankPlayers
 function GudaPlates_Threat.ManageTank(playerName, isTank)
     if not playerName then return false end
-    GP_TankPlayers[playerName] = isTank
+    GP_TankPlayers[CapitalizeName(playerName)] = isTank
 end
 
 function GudaPlates_Threat.PrintTanks(playerName, isTank)
@@ -400,7 +407,6 @@ if GudaPlates then
     GudaPlates.GP_TankPlayers = GP_TankPlayers
     GudaPlates.BroadcastTankMode = GudaPlates_Threat.BroadcastTankMode
     GudaPlates.IsPlayerTank = GudaPlates_Threat.IsPlayerTank
-    GudaPlates.ManageTank = GudaPlates_Threat.ManageTank
     GudaPlates.GetTWTankModeThreat = GudaPlates_Threat.GetTWTankModeThreat
     GudaPlates.GetGPThreatData = GudaPlates_Threat.GetGPThreatData
     GudaPlates.IsInPlayerGroup = GudaPlates_Threat.IsInPlayerGroup
