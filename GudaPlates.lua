@@ -306,6 +306,7 @@ local GetGPThreatData = GudaPlates_Threat and GudaPlates_Threat.GetGPThreatData
 local IsInPlayerGroup = GudaPlates_Threat and GudaPlates_Threat.IsInPlayerGroup
 local IsPlayerTank = GudaPlates_Threat and GudaPlates_Threat.IsPlayerTank
 local ManageTank = GudaPlates_Threat and GudaPlates_Threat.ManageTank
+local PrintTanks = GudaPlates_Threat and GudaPlates_Threat.PrintTanks
 local BroadcastTankMode = GudaPlates_Threat and GudaPlates_Threat.BroadcastTankMode
 
 -- Load spell database if available
@@ -3207,13 +3208,16 @@ SlashCmdList["GUDAPLATES"] = function(msg)
         local args = string_gsub(msg, "^tankname%s*", "")
         local isAdd = string_find(args, "^add")
         local isRemove = string_find(args, "^remove")
-        local tankname = string_gsub(args, "^(add|remove)%s*", "")
+        local tankname = string_gsub(args, "^add%s*", "")
+        tankname = string_gsub(tankname, "^remove%s*", "")
         if isAdd then
             ManageTank(tankname, true)
             Print("Added tank name: " .. tankname)
         elseif isRemove then
             ManageTank(tankname, false)
             Print("Removed tank name: " .. tankname)
+        else
+            PrintTanks()
         end
     elseif string_find(msg, "^othertank") then
         -- Set OTHER_TANK color: /gp othertank <preset> or /gp othertank r g b

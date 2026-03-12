@@ -223,6 +223,12 @@ function GudaPlates_Threat.ManageTank(playerName, isTank)
     GP_TankPlayers[playerName] = isTank
 end
 
+function GudaPlates_Threat.PrintTanks(playerName, isTank)
+    for key,value in pairs(GP_TankPlayers) do
+        Print(key .. ": " .. tostring(value)) 
+    end
+end
+
 -- Handle incoming Tank Mode messages
 local function GP_HandleTankModeMessage(sender, msg)
     if string_find(msg, "TM=") then
