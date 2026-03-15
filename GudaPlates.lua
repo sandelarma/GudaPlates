@@ -796,8 +796,8 @@ local function UpdateNamePlateDimensions(frame)
     -- When stacking, we also need to update the parent frame size
     -- so the game's stacking logic uses the new dimensions
     if not nameplateOverlap then
-        local npWidth = Settings.healthbarWidth * UIParent:GetScale()
-        local npHeight = (Settings.healthbarHeight + 20) * UIParent:GetScale() -- Added space for name/level
+        local npWidth = Settings.healthbarWidth -- * UIParent:GetScale()
+        local npHeight = (Settings.healthbarHeight + 30) -- * UIParent:GetScale() -- Added space for name/level
         frame:SetWidth(npWidth)
         frame:SetHeight(npHeight)
         nameplate:SetAllPoints(frame)
